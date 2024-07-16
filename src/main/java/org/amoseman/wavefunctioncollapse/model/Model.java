@@ -1,7 +1,6 @@
-package org.amoseman.wavefunctioncollapse;
+package org.amoseman.wavefunctioncollapse.model;
 
 
-import org.amoseman.wavefunctioncollapse.model.Field;
 import org.amoseman.wavefunctioncollapse.view.Window;
 
 import java.awt.*;
