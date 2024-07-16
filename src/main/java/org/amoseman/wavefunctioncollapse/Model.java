@@ -18,8 +18,9 @@ public class Model {
     private final int[][][] rule;
     private final double[] wave;
     private final double waveSum;
+    private final int recursionDepth;
 
-    public Model(final int width, final int height, final int states, final double[] wave) {
+    public Model(final int width, final int height, final int states, final double[] wave, int recursionDepth) {
         this.width = width;
         this.height = height;
         this.size = width * height;
@@ -35,6 +36,7 @@ public class Model {
             s += w;
         }
         this.waveSum = s;
+        this.recursionDepth = recursionDepth;
     }
 
     public Model addRule(int target, int neighbor, int direction) {
@@ -42,15 +44,23 @@ public class Model {
         return this;
     }
 
+    public void init() {
+        int r = (int) (Math.random() * size);
+        fields[r].collapse();
+        onCollapse(r, recursionDepth);
+    }
+
     public void step() {
         final double[] entropy = calculateEntropy();
         final int least = indexOfLeast(entropy);
-        System.out.println(least);
         fields[least].collapse();
-        onCollapse(least);
+        onCollapse(least, recursionDepth);
     }
 
-    private void onCollapse(int index) {
+    private void onCollapse(int index, int depth) {
+        if (depth == 0) {
+            return;
+        }
         final int x = index % width;
         final int y = index / width;
         for (Point d : DIRECTIONS) {
@@ -62,9 +72,9 @@ public class Model {
             final int other = x2 + y2 * width;
             List<Integer> possible = possibleValues(fields[index].state(), x, y, x2, y2);
             fields[other].keep(possible);
-            //if (fields[other].state() > 0) {
-            //    onCollapse(other);
-            //}
+            if (fields[other].state() > 0) {
+                onCollapse(other, depth - 1);
+            }
         }
     }
 
@@ -107,10 +117,15 @@ public class Model {
     }
 
     private int indexOfLeast(double[] values) {
-        int least = 0;
-        for (int i = 1; i < values.length; i++) {
-            if (values[least] > values[i]) {
-                least = i;
+        List<Integer> indices = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            indices.add(i);
+        }
+        int least = indices.remove(0);
+        while (!indices.isEmpty()) {
+            int index = indices.remove(0);
+            if (values[least] > values[index]) {
+                least = index;
             }
         }
         return least;
@@ -120,9 +135,11 @@ public class Model {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 Field field = fields[x + y * width];
-                Color color = palette[field.state()];
+                int state = field.state();
+                Color color = palette[state];
                 window.rect(new Rectangle(x * cellSize, y * cellSize, cellSize, cellSize), color);
             }
         }
+        window.update();
     }
 }

@@ -20,6 +20,9 @@ public class Field {
     }
 
     public double entropy(double[] wave, double sum) {
+        if (superposition.size() < 2) {
+            return 999;
+        }
         double entropy = 0;
         for (int i = 0; i < wave.length; i++) {
             if (!superposition.contains(i + 1)) {
@@ -31,6 +34,9 @@ public class Field {
     }
 
     public double entropy() {
+        if (superposition.size() < 2) {
+            return 999;
+        }
         double entropy = 0;
         double w = 1.0 / states;
         for (int i = 0; i < states; i++) {

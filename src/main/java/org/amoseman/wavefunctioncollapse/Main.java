@@ -27,7 +27,7 @@ public class Main {
                 Color.GREEN
         };
         final double[] weights = new double[]{0.2, 0.2, 0.2, 0.2};
-        Model model = new Model(GRID_WIDTH, GRID_HEIGHT, 4, weights);
+        Model model = new Model(GRID_WIDTH, GRID_HEIGHT, 4, weights, 3);
         for (int i = 0; i < 4; i++) {
             model.addRule(MOUNTAIN, MOUNTAIN, i);
             model.addRule(MOUNTAIN, LAND, i);
@@ -45,9 +45,15 @@ public class Main {
         }
 
 
+        model.init();
+        int tick = 0;
         while (true) {
             model.step();
-            model.draw(window, CELL_SIZE, palette);
+            if (tick % 1 == 0) {
+                model.draw(window, CELL_SIZE, palette);
+                tick = 0;
+            }
+            tick++;
         }
     }
 }
