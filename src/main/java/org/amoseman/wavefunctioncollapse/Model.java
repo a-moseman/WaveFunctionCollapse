@@ -21,7 +21,6 @@ public class Model {
     private final int[][][] rule;
     private final double[] wave;
     private double waveSum;
-    private final int recursionDepth;
     private double[] entropy;
 
     private Window window;
@@ -35,7 +34,7 @@ public class Model {
         return this;
     }
 
-    public Model(final int width, final int height, final int states, final int recursionDepth) {
+    public Model(final int width, final int height, final int states) {
         this.width = width;
         this.height = height;
         this.size = width * height;
@@ -57,7 +56,6 @@ public class Model {
             s += w;
         }
         this.waveSum = s;
-        this.recursionDepth = recursionDepth;
         this.entropy = new double[size];
     }
 
@@ -69,7 +67,7 @@ public class Model {
     public void init() {
         int r = (int) (Math.random() * size);
         fields[r].collapse();
-        onCollapse(r, recursionDepth);
+        onCollapse(r);
         entropy = calculateEntropy();
         calculateWave();
     }
@@ -79,20 +77,16 @@ public class Model {
         final int least = indexOfLeast(entropy);
         fields[least].collapse();
         entropy[least] = fields[least].entropy(wave, waveSum);
-        onCollapse(least, recursionDepth);
+        onCollapse(least);
     }
 
-    private void onCollapse(int index, int depth) {
+    private void onCollapse(int index) {
         final int x = index % width;
         final int y = index / width;
         Rectangle rectangle = new Rectangle(x * cellSize, y * cellSize, cellSize, cellSize);
         Color color = palette[fields[index].state()];
         window.rect(rectangle, color);
         window.update();
-
-        if (depth == 0) {
-            return;
-        }
         for (Point d : DIRECTIONS) {
             final int x2 = x + d.x;
             final int y2 = y + d.y;
@@ -104,14 +98,16 @@ public class Model {
             fields[other].keep(possible);
             entropy[other] = fields[other].entropy(wave, waveSum);
             if (fields[other].state() > 0) {
-                onCollapse(other, depth - 1);
+                rectangle = new Rectangle(x2 * cellSize, y2 * cellSize, cellSize, cellSize);
+                color = palette[fields[other].state()];
+                window.rect(rectangle, color);
+                window.update();
             }
         }
     }
 
     private List<Integer> possibleValues(final int target, final int x1, final int y1, final int x2, final int y2) {
         List<Integer> possibilities = new ArrayList<>();
-
         int dx = x2 - x1;
         int dy = y2 - y1;
         int direction = -1;
@@ -123,7 +119,6 @@ public class Model {
         if (direction == -1) {
             throw new RuntimeException("Failed to find direction");
         }
-
 
         for (int state = 0; state < states; state++) {
             if (rule[target - 1][state][direction] == 1) {
@@ -173,16 +168,18 @@ public class Model {
     private void calculateWave() {
         Arrays.fill(wave, 0);
         waveSum = 0;
-
+        //int t = 0;
         for (int i = 0; i < size; i++) {
             int state = fields[i].state();
             if (state == 0) {
                 continue;
             }
             wave[state - 1] += 1.0 / size;
+            //t++;
         }
-        for (double v : wave) {
-            waveSum += v;
+        for (int i = 0; i < wave.length; i++) {
+            //wave[i] = wave[i] / t;
+            waveSum += wave[i];
         }
     }
 }
