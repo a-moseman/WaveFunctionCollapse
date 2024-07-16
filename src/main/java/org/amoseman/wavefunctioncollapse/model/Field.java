@@ -21,7 +21,7 @@ public class Field {
 
     public double entropy(double[] wave, double sum) {
         if (superposition.size() < 2) {
-            return 999;
+            return 9999;
         }
         double entropy = 0;
         for (int i = 0; i < wave.length; i++) {

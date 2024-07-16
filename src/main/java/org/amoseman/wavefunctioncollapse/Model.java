@@ -6,6 +6,7 @@ import org.amoseman.wavefunctioncollapse.view.Window;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class Model {
     private final List<Integer> fieldIndices;
     private final int[][][] rule;
     private final double[] wave;
-    private final double waveSum;
+    private double waveSum;
     private final int recursionDepth;
     private double[] entropy;
 
@@ -32,29 +33,6 @@ public class Model {
         this.cellSize = cellSize;
         this.palette = palette;
         return this;
-    }
-
-    public Model(final int width, final int height, final int states, final int recursionDepth, final double[] wave) {
-        this.width = width;
-        this.height = height;
-        this.size = width * height;
-        this.states = states;
-        this.fields = new Field[size];
-        this.fieldIndices = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
-            fields[i] = new Field(states);
-            fieldIndices.add(i);
-        }
-        Collections.shuffle(fieldIndices);
-        this.rule = new int[states][states][DIRECTIONS.length];
-        this.wave = wave;
-        double s = 0;
-        for (double w : wave) {
-            s += w;
-        }
-        this.waveSum = s;
-        this.recursionDepth = recursionDepth;
-        this.entropy = new double[size];
     }
 
     public Model(final int width, final int height, final int states, final int recursionDepth) {
@@ -93,9 +71,11 @@ public class Model {
         fields[r].collapse();
         onCollapse(r, recursionDepth);
         entropy = calculateEntropy();
+        calculateWave();
     }
 
     public void step() {
+        calculateWave();
         final int least = indexOfLeast(entropy);
         fields[least].collapse();
         entropy[least] = fields[least].entropy(wave, waveSum);
@@ -188,5 +168,21 @@ public class Model {
             }
         }
         window.update();
+    }
+
+    private void calculateWave() {
+        Arrays.fill(wave, 0);
+        waveSum = 0;
+
+        for (int i = 0; i < size; i++) {
+            int state = fields[i].state();
+            if (state == 0) {
+                continue;
+            }
+            wave[state - 1] += 1.0 / size;
+        }
+        for (double v : wave) {
+            waveSum += v;
+        }
     }
 }
