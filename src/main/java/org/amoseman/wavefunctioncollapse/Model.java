@@ -30,7 +30,7 @@ public class Model {
         return this;
     }
 
-    public Model(final int width, final int height, final int states, final double[] wave, int recursionDepth) {
+    public Model(final int width, final int height, final int states, final int recursionDepth, final double[] wave) {
         this.width = width;
         this.height = height;
         this.size = width * height;
@@ -41,6 +41,28 @@ public class Model {
         }
         this.rule = new int[states][states][DIRECTIONS.length];
         this.wave = wave;
+        double s = 0;
+        for (double w : wave) {
+            s += w;
+        }
+        this.waveSum = s;
+        this.recursionDepth = recursionDepth;
+    }
+
+    public Model(final int width, final int height, final int states, final int recursionDepth) {
+        this.width = width;
+        this.height = height;
+        this.size = width * height;
+        this.states = states;
+        this.fields = new Field[size];
+        for (int i = 0; i < size; i++) {
+            fields[i] = new Field(states);
+        }
+        this.rule = new int[states][states][DIRECTIONS.length];
+        this.wave = new double[states];
+        for (int i = 0; i < states; i++) {
+            wave[i] = 1.0 / states;
+        }
         double s = 0;
         for (double w : wave) {
             s += w;

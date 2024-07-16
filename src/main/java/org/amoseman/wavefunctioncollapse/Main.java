@@ -13,21 +13,21 @@ public class Main {
     public static void main(String[] args) {
         Window window = new Window(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-        final int UNDETERMINED = 0;
         final int MOUNTAIN = 1;
         final int BEACH = 2;
         final int SEA = 3;
-        final int LAND = 4;
+        final int DEEP_SEA = 4;
+        final int LAND = 5;
 
-        final Color[] palette = new Color[] {
-                Color.BLACK,
-                Color.GRAY,
-                Color.YELLOW,
-                Color.BLUE,
-                Color.GREEN
-        };
-        final double[] weights = new double[]{0.2, 0.2, 0.2, 0.2};
-        Model model = new Model(GRID_WIDTH, GRID_HEIGHT, 4, weights, 1);
+        final Color[] palette = new Color[6];
+        palette[0] = Color.BLACK;
+        palette[MOUNTAIN] = Color.GRAY;
+        palette[BEACH] = Color.YELLOW;
+        palette[SEA] = Color.BLUE;
+        palette[DEEP_SEA] = new Color(0x0000C0);
+        palette[LAND] = Color.GREEN;
+
+        Model model = new Model(GRID_WIDTH, GRID_HEIGHT, 5, 1);
         for (int i = 0; i < 4; i++) {
             model.addRule(MOUNTAIN, MOUNTAIN, i);
             model.addRule(MOUNTAIN, LAND, i);
@@ -42,6 +42,9 @@ public class Main {
 
             model.addRule(SEA, SEA, i);
             model.addRule(SEA, BEACH, i);
+
+            model.addRule(DEEP_SEA, DEEP_SEA, i);
+            model.addRule(DEEP_SEA, SEA, i);
         }
         model.setWindow(window, CELL_SIZE, palette);
 
