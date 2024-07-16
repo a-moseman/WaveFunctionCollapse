@@ -6,7 +6,6 @@ import org.amoseman.wavefunctioncollapse.view.Window;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class Model {
@@ -16,11 +15,10 @@ public class Model {
     private final int size;
     private final int states;
     private final Field[] fields;
-    private final List<Integer> fieldIndices;
-    private final int[][][] rule;
+    private final EntropyMatrix entropyMatrix;
+    private final Rule rule;
     private final double[] wave;
     private double waveSum;
-    private double[] entropy;
 
     private Window window;
     private int cellSize;
@@ -39,13 +37,11 @@ public class Model {
         this.size = width * height;
         this.states = states;
         this.fields = new Field[size];
-        this.fieldIndices = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             fields[i] = new Field(states);
-            fieldIndices.add(i);
         }
-        Collections.shuffle(fieldIndices);
-        this.rule = new int[states][states][DIRECTIONS.length];
+        this.entropyMatrix = new EntropyMatrix(size);
+        this.rule = new Rule(states);
         this.wave = new double[states];
         for (int i = 0; i < states; i++) {
             wave[i] = 1.0 / states;
@@ -55,11 +51,10 @@ public class Model {
             s += w;
         }
         this.waveSum = s;
-        this.entropy = new double[size];
     }
 
     public Model addRule(int target, int neighbor, int direction) {
-        rule[target - 1][neighbor - 1][direction] = 1;
+        rule.set(target, neighbor, direction);
         return this;
     }
 
@@ -67,15 +62,15 @@ public class Model {
         int r = (int) (Math.random() * size);
         fields[r].collapse();
         onCollapse(r);
-        entropy = calculateEntropy();
+        calculateEntropy();
         calculateWave();
     }
 
     public void step() {
         calculateWave();
-        final int least = indexOfLeast(entropy);
+        final int least = entropyMatrix.getIndexOfLowest();
         fields[least].collapse();
-        entropy[least] = fields[least].entropy(wave, waveSum);
+        entropyMatrix.set(least, fields[least].entropy(wave, waveSum));
         onCollapse(least);
     }
 
@@ -95,7 +90,7 @@ public class Model {
             final int other = x2 + y2 * width;
             List<Integer> possible = possibleValues(fields[index].state(), x, y, x2, y2);
             fields[other].keep(possible);
-            entropy[other] = fields[other].entropy(wave, waveSum);
+            entropyMatrix.set(other, fields[other].entropy(wave, waveSum));
             if (fields[other].state() > 0) {
                 rectangle = new Rectangle(x2 * cellSize, y2 * cellSize, cellSize, cellSize);
                 color = palette[fields[other].state()];
@@ -106,7 +101,6 @@ public class Model {
     }
 
     private List<Integer> possibleValues(final int target, final int x1, final int y1, final int x2, final int y2) {
-        List<Integer> possibilities = new ArrayList<>();
         int dx = x2 - x1;
         int dy = y2 - y1;
         int direction = -1;
@@ -118,50 +112,17 @@ public class Model {
         if (direction == -1) {
             throw new RuntimeException("Failed to find direction");
         }
-
-        for (int state = 0; state < states; state++) {
-            if (rule[target - 1][state][direction] == 1) {
-                possibilities.add(state + 1);
-            }
-        }
-
-        return possibilities;
+        return rule.possible(target, direction);
     }
 
     private boolean outOfBounds(int x, int y) {
         return x < 0 || x >= width || y < 0 || y >= height;
     }
 
-    private double[] calculateEntropy() {
-        double[] entropy = new double[size];
+    private void calculateEntropy() {
         for (int i = 0; i < size; i++) {
-            Field field = fields[i];
-            entropy[i] = field.entropy(wave, waveSum);
+            entropyMatrix.set(i, fields[i].entropy(wave, waveSum));
         }
-        return entropy;
-    }
-
-    private int indexOfLeast(double[] values) {
-        int least = fieldIndices.get(0);
-        for (int i = 1; i < size; i++) {
-            int index = fieldIndices.get(i);
-            if (values[least] > values[index]) {
-                least = index;
-            }
-        }
-        return least;
-    }
-
-    public void draw(Window window, int cellSize, Color[] palette) {
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                Field field = fields[x + y * width];
-                int state = field.state();
-                Color color = palette[state];
-                window.rect(new Rectangle(x * cellSize, y * cellSize, cellSize, cellSize), color);
-            }
-        }
-        window.update();
     }
 
     private void calculateWave() {
