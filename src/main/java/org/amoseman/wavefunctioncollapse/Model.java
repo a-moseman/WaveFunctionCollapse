@@ -19,6 +19,16 @@ public class Model {
     private final double[] wave;
     private final double waveSum;
     private final int recursionDepth;
+    private Window window;
+    private int cellSize;
+    private Color[] palette;
+
+    public Model setWindow(Window window, int cellSize, Color[] palette) {
+        this.window = window;
+        this.cellSize = cellSize;
+        this.palette = palette;
+        return this;
+    }
 
     public Model(final int width, final int height, final int states, final double[] wave, int recursionDepth) {
         this.width = width;
@@ -58,11 +68,16 @@ public class Model {
     }
 
     private void onCollapse(int index, int depth) {
+        final int x = index % width;
+        final int y = index / width;
+        Rectangle rectangle = new Rectangle(x * cellSize, y * cellSize, cellSize, cellSize);
+        Color color = palette[fields[index].state()];
+        window.rect(rectangle, color);
+        window.update();
+
         if (depth == 0) {
             return;
         }
-        final int x = index % width;
-        final int y = index / width;
         for (Point d : DIRECTIONS) {
             final int x2 = x + d.x;
             final int y2 = y + d.y;

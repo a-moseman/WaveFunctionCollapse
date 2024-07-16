@@ -27,7 +27,7 @@ public class Main {
                 Color.GREEN
         };
         final double[] weights = new double[]{0.2, 0.2, 0.2, 0.2};
-        Model model = new Model(GRID_WIDTH, GRID_HEIGHT, 4, weights, 3);
+        Model model = new Model(GRID_WIDTH, GRID_HEIGHT, 4, weights, 1);
         for (int i = 0; i < 4; i++) {
             model.addRule(MOUNTAIN, MOUNTAIN, i);
             model.addRule(MOUNTAIN, LAND, i);
@@ -43,17 +43,21 @@ public class Main {
             model.addRule(SEA, SEA, i);
             model.addRule(SEA, BEACH, i);
         }
+        model.setWindow(window, CELL_SIZE, palette);
 
 
         model.init();
-        int tick = 0;
+        //int tick = 0;
         while (true) {
             model.step();
+            /*
             if (tick % 1 == 0) {
                 model.draw(window, CELL_SIZE, palette);
                 tick = 0;
             }
             tick++;
+
+             */
         }
     }
 }
