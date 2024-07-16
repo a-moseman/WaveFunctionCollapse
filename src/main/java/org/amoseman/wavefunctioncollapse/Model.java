@@ -6,6 +6,7 @@ import org.amoseman.wavefunctioncollapse.view.Window;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Model {
@@ -15,10 +16,13 @@ public class Model {
     private final int size;
     private final int states;
     private final Field[] fields;
+    private final List<Integer> fieldIndices;
     private final int[][][] rule;
     private final double[] wave;
     private final double waveSum;
     private final int recursionDepth;
+    private double[] entropy;
+
     private Window window;
     private int cellSize;
     private Color[] palette;
@@ -36,9 +40,12 @@ public class Model {
         this.size = width * height;
         this.states = states;
         this.fields = new Field[size];
+        this.fieldIndices = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             fields[i] = new Field(states);
+            fieldIndices.add(i);
         }
+        Collections.shuffle(fieldIndices);
         this.rule = new int[states][states][DIRECTIONS.length];
         this.wave = wave;
         double s = 0;
@@ -47,6 +54,7 @@ public class Model {
         }
         this.waveSum = s;
         this.recursionDepth = recursionDepth;
+        this.entropy = new double[size];
     }
 
     public Model(final int width, final int height, final int states, final int recursionDepth) {
@@ -55,9 +63,12 @@ public class Model {
         this.size = width * height;
         this.states = states;
         this.fields = new Field[size];
+        this.fieldIndices = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             fields[i] = new Field(states);
+            fieldIndices.add(i);
         }
+        Collections.shuffle(fieldIndices);
         this.rule = new int[states][states][DIRECTIONS.length];
         this.wave = new double[states];
         for (int i = 0; i < states; i++) {
@@ -69,6 +80,7 @@ public class Model {
         }
         this.waveSum = s;
         this.recursionDepth = recursionDepth;
+        this.entropy = new double[size];
     }
 
     public Model addRule(int target, int neighbor, int direction) {
@@ -80,12 +92,13 @@ public class Model {
         int r = (int) (Math.random() * size);
         fields[r].collapse();
         onCollapse(r, recursionDepth);
+        entropy = calculateEntropy();
     }
 
     public void step() {
-        final double[] entropy = calculateEntropy();
         final int least = indexOfLeast(entropy);
         fields[least].collapse();
+        entropy[least] = fields[least].entropy(wave, waveSum);
         onCollapse(least, recursionDepth);
     }
 
@@ -109,6 +122,7 @@ public class Model {
             final int other = x2 + y2 * width;
             List<Integer> possible = possibleValues(fields[index].state(), x, y, x2, y2);
             fields[other].keep(possible);
+            entropy[other] = fields[other].entropy(wave, waveSum);
             if (fields[other].state() > 0) {
                 onCollapse(other, depth - 1);
             }
@@ -154,13 +168,9 @@ public class Model {
     }
 
     private int indexOfLeast(double[] values) {
-        List<Integer> indices = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
-            indices.add(i);
-        }
-        int least = indices.remove(0);
-        while (!indices.isEmpty()) {
-            int index = indices.remove(0);
+        int least = fieldIndices.get(0);
+        for (int i = 1; i < size; i++) {
+            int index = fieldIndices.get(i);
             if (values[least] > values[index]) {
                 least = index;
             }
