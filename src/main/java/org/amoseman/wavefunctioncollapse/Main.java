@@ -1,17 +1,12 @@
 package org.amoseman.wavefunctioncollapse;
 
-import com.squareup.gifencoder.GifEncoder;
-import com.squareup.gifencoder.ImageOptions;
+import org.amoseman.wavefunctioncollapse.io.GifWriter;
 import org.amoseman.wavefunctioncollapse.model.Model;
 import org.amoseman.wavefunctioncollapse.view.Window;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 public class Main {
     private static final int SCREEN_WIDTH = 1600;
@@ -92,14 +87,14 @@ public class Main {
         model.setWindow(window, CELL_SIZE, palette);
 
         Optional<BufferedImage[]> result = run(model, window, 30_000, 240);
-        if (result.isPresent()) {
-            try {
-                writeGif("example.gif", result.get());
-            }
-            catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        if (result.isEmpty()) {
+            return;
         }
+        new GifWriter()
+                .setFileName("example.gif")
+                .setFrames(result.get())
+                .setFrameDelay(166)
+                .write();
     }
 
     private static Optional<BufferedImage[]> run(Model model, Window window, int steps, int frames) {
@@ -129,23 +124,5 @@ public class Main {
         }
         window.close();
         return Optional.of(states);
-    }
-
-    private static void writeGif(String fileName, BufferedImage[] frames) throws IOException {
-        OutputStream stream = new FileOutputStream(fileName);
-        ImageOptions options = new ImageOptions();
-        options.setDelay(166, TimeUnit.MILLISECONDS);
-        GifEncoder encoder = new GifEncoder(stream, frames[0].getWidth(), frames[0].getHeight(), 0);
-        for (BufferedImage image : frames) {
-            int[][] data = new int[image.getHeight()][image.getWidth()];
-            for (int y = 0; y < image.getHeight(); y++) {
-                for (int x = 0; x < image.getWidth(); x++) {
-                    data[y][x] = image.getRGB(x, y);
-                }
-            }
-            encoder.addImage(data, options);
-        }
-        encoder.finishEncoding();
-        stream.close();
     }
 }
