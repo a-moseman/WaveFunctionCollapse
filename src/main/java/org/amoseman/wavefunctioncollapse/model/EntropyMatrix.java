@@ -5,12 +5,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class EntropyMatrix {
-    private final int size;
     private final double[] entropy;
     private final List<Integer> indices;
 
     public EntropyMatrix(int size) {
-        this.size = size;
         this.entropy = new double[size];
         this.indices = new ArrayList<>();
         for (int i = 0; i < size; i++) {
@@ -27,10 +25,6 @@ public class EntropyMatrix {
             }
         }
         return least;
-    }
-
-    public double get(int index) {
-        return entropy[index];
     }
 
     public void set(int index, double e) {
