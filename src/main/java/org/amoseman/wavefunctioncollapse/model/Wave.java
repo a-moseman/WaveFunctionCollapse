@@ -3,12 +3,10 @@ package org.amoseman.wavefunctioncollapse.model;
 import java.util.Arrays;
 
 public class Wave {
-    private final int states;
     private final double[] values;
     private double sum;
 
     public Wave(int states) {
-        this.states = states;
         this.values = new double[states];
         for (int i = 0; i < states; i++) {
             values[i] = 1.0 / states;
