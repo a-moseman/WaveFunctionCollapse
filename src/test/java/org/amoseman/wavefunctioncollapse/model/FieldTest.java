@@ -22,6 +22,9 @@ class FieldTest {
             int actual = possible.get(0);
             field.keep(possible);
             assertEquals(actual, field.state());
+
+            field = new Field(1);
+            assertEquals(1, field.state());
         }
     }
 }

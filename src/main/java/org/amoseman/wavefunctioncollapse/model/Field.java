@@ -16,7 +16,12 @@ public class Field {
             superposition.add(i);
         }
         Collections.shuffle(superposition);
-        state = 0;
+        if (states == 1) {
+            state = 1;
+        }
+        else {
+            state = 0;
+        }
     }
 
     public double entropy(Wave wave) {
