@@ -1,6 +1,5 @@
 package org.amoseman.wavefunctioncollapse.model;
 
-
 import org.amoseman.wavefunctioncollapse.view.Window;
 
 import java.awt.*;
@@ -11,7 +10,6 @@ public class Model {
     private final int width;
     private final int height;
     private final int size;
-    private final int states;
     private final Field[] fields;
     private final EntropyMatrix entropyMatrix;
     private final Rule rule;
