@@ -7,11 +7,9 @@ import org.amoseman.wavefunctioncollapse.view.Window;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.rmi.RemoteException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
