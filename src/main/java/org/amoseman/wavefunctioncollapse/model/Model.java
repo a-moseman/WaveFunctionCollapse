@@ -4,7 +4,6 @@ package org.amoseman.wavefunctioncollapse.model;
 import org.amoseman.wavefunctioncollapse.view.Window;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -128,18 +127,15 @@ public class Model {
     private void calculateWave() {
         Arrays.fill(wave, 0);
         waveSum = 0;
-        //int t = 0;
         for (int i = 0; i < size; i++) {
             int state = fields[i].state();
             if (state == 0) {
                 continue;
             }
             wave[state - 1] += 1.0 / size;
-            //t++;
         }
-        for (int i = 0; i < wave.length; i++) {
-            //wave[i] = wave[i] / t;
-            waveSum += wave[i];
+        for (double v : wave) {
+            waveSum += v;
         }
     }
 }
