@@ -30,7 +30,6 @@ public class Model {
         this.width = width;
         this.height = height;
         this.size = width * height;
-        this.states = states;
         this.fields = new Field[size];
         for (int i = 0; i < size; i++) {
             fields[i] = new Field(states);
