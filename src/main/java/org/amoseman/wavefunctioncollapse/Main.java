@@ -1,6 +1,7 @@
 package org.amoseman.wavefunctioncollapse;
 
 import org.amoseman.wavefunctioncollapse.io.GifWriter;
+import org.amoseman.wavefunctioncollapse.model.Engine;
 import org.amoseman.wavefunctioncollapse.model.Model;
 import org.amoseman.wavefunctioncollapse.view.Window;
 
@@ -86,7 +87,13 @@ public class Main {
         }
         model.setWindow(window, CELL_SIZE, palette);
 
-        Optional<BufferedImage[]> result = run(model, window, 30_000, 240);
+        Engine engine = new Engine()
+                .setModel(model)
+                .setWindow(window)
+                .setSteps(30_000)
+                .setFrames(240);
+
+        Optional<BufferedImage[]> result = engine.run();
         if (result.isEmpty()) {
             return;
         }
@@ -95,34 +102,5 @@ public class Main {
                 .setFrames(result.get())
                 .setFrameDelay(166)
                 .write();
-    }
-
-    private static Optional<BufferedImage[]> run(Model model, Window window, int steps, int frames) {
-        int tick = 0;
-        if (frames == 0) {
-            model.init();
-            while (tick < steps) {
-                model.step();
-                tick++;
-            }
-            return Optional.empty();
-        }
-        if (steps % frames != 0) {
-            throw new RuntimeException("Steps not divisible by frames");
-        }
-        final int sections = steps / frames;
-        int frame = 0;
-        BufferedImage[] states = new BufferedImage[frames];
-        model.init();
-        while (tick < steps) {
-            model.step();
-            if (tick % sections == 0) {
-                states[frame] = window.getScreen();
-                frame++;
-            }
-            tick++;
-        }
-        window.close();
-        return Optional.of(states);
     }
 }
