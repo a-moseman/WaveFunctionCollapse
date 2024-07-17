@@ -6,7 +6,7 @@ import java.awt.*;
 import java.util.List;
 
 public class Model {
-    private static final Point[] DIRECTIONS = new Point[]{new Point(0, 1), new Point(0, -1), new Point(1, 0), new Point(-1, 0)};
+    private final Direction direction;
     private final int width;
     private final int height;
     private final int size;
@@ -27,6 +27,7 @@ public class Model {
     }
 
     public Model(final int width, final int height, final int states) {
+        this.direction = new Direction();
         this.width = width;
         this.height = height;
         this.size = width * height;
@@ -69,7 +70,7 @@ public class Model {
         Color color = palette[fields[index].state()];
         window.rect(rectangle, color);
         window.update();
-        for (Point d : DIRECTIONS) {
+        for (Point d : direction.list()) {
             final int x2 = x + d.x;
             final int y2 = y + d.y;
             if (outOfBounds(x2, y2)) {
@@ -91,16 +92,8 @@ public class Model {
     private List<Integer> possibleValues(final int target, final int x1, final int y1, final int x2, final int y2) {
         int dx = x2 - x1;
         int dy = y2 - y1;
-        int direction = -1;
-        for (int i = 0; i < DIRECTIONS.length; i++) {
-            if (DIRECTIONS[i].equals(new Point(dx, dy))) {
-                direction = i;
-            }
-        }
-        if (direction == -1) {
-            throw new RuntimeException("Failed to find direction");
-        }
-        return rule.possible(target, direction);
+        int d = direction.toIndex(dx, dy);
+        return rule.possible(target, d);
     }
 
     private boolean outOfBounds(int x, int y) {
