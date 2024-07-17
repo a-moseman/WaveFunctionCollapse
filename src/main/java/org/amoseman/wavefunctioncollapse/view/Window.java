@@ -8,24 +8,22 @@ import java.awt.image.WritableRaster;
 
 public class Window {
     private final BufferedImage screen;
-    private Graphics graphics;
+    private final Graphics graphics;
     private final JFrame frame;
-    private final JPanel panel;
 
     public Window(int width, int height) {
         this.screen = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         this.graphics = screen.getGraphics();
-        this.panel = new JPanel() {
+        this.frame = new JFrame();
+        frame.setSize(width, height);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.add(new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 g.drawImage(screen, 0, 0, this);
             }
-        };
-        this.frame = new JFrame();
-        frame.setSize(width, height);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.add(panel);
+        });
         frame.setVisible(true);
     }
 
