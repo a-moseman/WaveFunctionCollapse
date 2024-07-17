@@ -7,16 +7,12 @@ import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 
 public class Window {
-    private final int width;
-    private final int height;
     private final BufferedImage screen;
     private Graphics graphics;
     private final JFrame frame;
     private final JPanel panel;
 
     public Window(int width, int height) {
-        this.width = width;
-        this.height = height;
         this.screen = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         this.graphics = screen.getGraphics();
         this.panel = new JPanel() {
@@ -40,7 +36,6 @@ public class Window {
 
     public void update() {
         frame.repaint();
-        //graphics = screen.getGraphics();
     }
 
     public void close() {
