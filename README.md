@@ -5,3 +5,6 @@ The implementation represents the constraints of the model as a set of rules. Ea
 
 ## Iteration
 Each iteration of the algorithm selects the cell with the lowest entropy. If there are several of the same, lowest, entropy, one of them is chosen randomly. The entropy is calculated using the [Shannon entropy](https://en.wikipedia.org/wiki/Entropy_(information_theory)). The chosen cell is randomly collapsed to one of its remaining, valid states. Cells with no valid states are left as undetermined. 
+
+## Example
+![example.gif](https://github.com/a-moseman/WaveFunctionCollapse/blob/master/example.gif?raw=true)
