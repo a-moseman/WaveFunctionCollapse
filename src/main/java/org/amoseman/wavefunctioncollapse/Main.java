@@ -1,9 +1,15 @@
 package org.amoseman.wavefunctioncollapse;
 
+import com.squareup.gifencoder.GifEncoder;
+import com.squareup.gifencoder.ImageOptions;
 import org.amoseman.wavefunctioncollapse.model.Model;
 import org.amoseman.wavefunctioncollapse.view.Window;
 
 import java.awt.*;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class Main {
     private static final int SCREEN_WIDTH = 1600;
@@ -11,7 +17,7 @@ public class Main {
     private static final int CELL_SIZE = 6;
     private static final int GRID_WIDTH = SCREEN_WIDTH / CELL_SIZE;
     private static final int GRID_HEIGHT = SCREEN_HEIGHT / CELL_SIZE;
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Window window = new Window(SCREEN_WIDTH, SCREEN_HEIGHT);
 
         final int STATES = 10;
@@ -79,16 +85,44 @@ public class Main {
             model.addRule(ICE, ICE, i);
             model.addRule(ICE, DEEPEST_SEA, i);
 
-            //model.addRule(SHORE, SHORE, i);
             model.addRule(SHORE, PLAINS, i);
             model.addRule(SHORE, SEA, i);
         }
         model.setWindow(window, CELL_SIZE, palette);
 
 
+        final int steps = 100_000;
+        final int frames = 100;
+        int t = 0;
+        int f = 0;
         model.init();
-        while (true) {
+        int[][] states = new int[frames][GRID_WIDTH * GRID_HEIGHT];
+        while (t < steps) {
             model.step();
+            if (t % (steps / frames) == 0) {
+                states[f] = model.getStates();
+                f++;
+            }
+            t++;
         }
+        window.close();
+
+        OutputStream stream = new FileOutputStream("example.gif");
+        ImageOptions options = new ImageOptions();
+        GifEncoder encoder = new GifEncoder(stream, GRID_WIDTH, GRID_HEIGHT, 0);
+        for (int i = 0; i < steps; i++) {
+            int[][] frame = new int[GRID_HEIGHT][GRID_WIDTH];
+            int[] state = states[i];
+            for (int x = 0; x < GRID_WIDTH; x++) {
+                for (int y = 0; y < GRID_HEIGHT; y++) {
+                    int field = state[x + y * GRID_WIDTH];
+                    Color color = palette[field];
+                    frame[y][x] = color.getRGB();
+                }
+            }
+            encoder.addImage(frame, options);
+        }
+        encoder.finishEncoding();
+        stream.close();
     }
 }

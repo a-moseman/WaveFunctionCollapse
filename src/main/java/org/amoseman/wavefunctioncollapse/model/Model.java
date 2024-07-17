@@ -138,4 +138,12 @@ public class Model {
             waveSum += v;
         }
     }
+
+    public int[] getStates() {
+        int[] states = new int[size];
+        for (int i = 0; i < size; i++) {
+            states[i] = fields[i].state();
+        }
+        return states;
+    }
 }

@@ -40,4 +40,8 @@ public class Window {
         frame.repaint();
         //graphics = screen.getGraphics();
     }
+
+    public void close() {
+        frame.dispose();
+    }
 }
