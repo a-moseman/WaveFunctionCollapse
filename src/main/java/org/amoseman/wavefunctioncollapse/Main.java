@@ -6,10 +6,12 @@ import org.amoseman.wavefunctioncollapse.model.Model;
 import org.amoseman.wavefunctioncollapse.view.Window;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
     private static final int SCREEN_WIDTH = 1600;
@@ -91,16 +93,20 @@ public class Main {
         model.setWindow(window, CELL_SIZE, palette);
 
 
-        final int steps = 100_000;
-        final int frames = 100;
+        final int steps = 30_000;
+        final int frames = 240;
+        if (steps % frames != 0) {
+            throw new RuntimeException("Steps not divisible by frames");
+        }
+        final int sections = steps / frames;
         int t = 0;
         int f = 0;
         model.init();
-        int[][] states = new int[frames][GRID_WIDTH * GRID_HEIGHT];
+        BufferedImage[] states = new BufferedImage[frames];
         while (t < steps) {
             model.step();
-            if (t % (steps / frames) == 0) {
-                states[f] = model.getStates();
+            if (t % sections == 0) {
+                states[f] = window.getScreen();
                 f++;
             }
             t++;
@@ -109,18 +115,17 @@ public class Main {
 
         OutputStream stream = new FileOutputStream("example.gif");
         ImageOptions options = new ImageOptions();
-        GifEncoder encoder = new GifEncoder(stream, GRID_WIDTH, GRID_HEIGHT, 0);
-        for (int i = 0; i < steps; i++) {
-            int[][] frame = new int[GRID_HEIGHT][GRID_WIDTH];
-            int[] state = states[i];
-            for (int x = 0; x < GRID_WIDTH; x++) {
-                for (int y = 0; y < GRID_HEIGHT; y++) {
-                    int field = state[x + y * GRID_WIDTH];
-                    Color color = palette[field];
-                    frame[y][x] = color.getRGB();
+        options.setDelay(166, TimeUnit.MILLISECONDS);
+        GifEncoder encoder = new GifEncoder(stream, states[0].getWidth(), states[0].getHeight(), 0);
+        for (int i = 0; i < frames; i++) {
+            BufferedImage image = states[i];
+            int[][] data = new int[image.getHeight()][image.getWidth()];
+            for (int y = 0; y < image.getHeight(); y++) {
+                for (int x = 0; x < image.getWidth(); x++) {
+                    data[y][x] = image.getRGB(x, y);
                 }
             }
-            encoder.addImage(frame, options);
+            encoder.addImage(data, options);
         }
         encoder.finishEncoding();
         stream.close();

@@ -3,6 +3,8 @@ package org.amoseman.wavefunctioncollapse.view;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.WritableRaster;
 
 public class Window {
     private final int width;
@@ -42,6 +44,14 @@ public class Window {
     }
 
     public void close() {
+        frame.setVisible(false);
         frame.dispose();
+    }
+
+    public BufferedImage getScreen() {
+        ColorModel cm = screen.getColorModel();
+        boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+        WritableRaster raster = screen.copyData(null);
+        return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
     }
 }
