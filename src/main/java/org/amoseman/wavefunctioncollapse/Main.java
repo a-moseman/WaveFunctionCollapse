@@ -7,7 +7,6 @@ import org.amoseman.wavefunctioncollapse.view.Window;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -101,8 +100,8 @@ public class Main {
         final int sections = steps / frames;
         int t = 0;
         int f = 0;
-        model.init();
         BufferedImage[] states = new BufferedImage[frames];
+        model.init();
         while (t < steps) {
             model.step();
             if (t % sections == 0) {

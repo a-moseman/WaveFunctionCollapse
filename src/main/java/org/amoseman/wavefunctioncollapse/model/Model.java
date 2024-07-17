@@ -4,7 +4,6 @@ package org.amoseman.wavefunctioncollapse.model;
 import org.amoseman.wavefunctioncollapse.view.Window;
 
 import java.awt.*;
-import java.util.Arrays;
 import java.util.List;
 
 public class Model {
@@ -16,8 +15,7 @@ public class Model {
     private final Field[] fields;
     private final EntropyMatrix entropyMatrix;
     private final Rule rule;
-    private final double[] wave;
-    private double waveSum;
+    private final Wave wave;
 
     private Window window;
     private int cellSize;
@@ -41,15 +39,7 @@ public class Model {
         }
         this.entropyMatrix = new EntropyMatrix(size);
         this.rule = new Rule(states);
-        this.wave = new double[states];
-        for (int i = 0; i < states; i++) {
-            wave[i] = 1.0 / states;
-        }
-        double s = 0;
-        for (double w : wave) {
-            s += w;
-        }
-        this.waveSum = s;
+        this.wave = new Wave(states);
     }
 
     public Model addRule(int target, int neighbor, int direction) {
@@ -61,15 +51,17 @@ public class Model {
         int r = (int) (Math.random() * size);
         fields[r].collapse();
         onCollapse(r);
-        calculateEntropy();
-        calculateWave();
+        for (int i = 0; i < size; i++) {
+            entropyMatrix.set(i, fields[i].entropy(wave));
+        }
+        wave.update(fields);
     }
 
     public void step() {
-        calculateWave();
+        wave.update(fields);
         final int least = entropyMatrix.getIndexOfLowest();
         fields[least].collapse();
-        entropyMatrix.set(least, fields[least].entropy(wave, waveSum));
+        entropyMatrix.set(least, fields[least].entropy(wave));
         onCollapse(least);
     }
 
@@ -89,7 +81,7 @@ public class Model {
             final int other = x2 + y2 * width;
             List<Integer> possible = possibleValues(fields[index].state(), x, y, x2, y2);
             fields[other].keep(possible);
-            entropyMatrix.set(other, fields[other].entropy(wave, waveSum));
+            entropyMatrix.set(other, fields[other].entropy(wave));
             if (fields[other].state() > 0) {
                 rectangle = new Rectangle(x2 * cellSize, y2 * cellSize, cellSize, cellSize);
                 color = palette[fields[other].state()];
@@ -116,26 +108,5 @@ public class Model {
 
     private boolean outOfBounds(int x, int y) {
         return x < 0 || x >= width || y < 0 || y >= height;
-    }
-
-    private void calculateEntropy() {
-        for (int i = 0; i < size; i++) {
-            entropyMatrix.set(i, fields[i].entropy(wave, waveSum));
-        }
-    }
-
-    private void calculateWave() {
-        Arrays.fill(wave, 0);
-        waveSum = 0;
-        for (int i = 0; i < size; i++) {
-            int state = fields[i].state();
-            if (state == 0) {
-                continue;
-            }
-            wave[state - 1] += 1.0 / size;
-        }
-        for (double v : wave) {
-            waveSum += v;
-        }
     }
 }
