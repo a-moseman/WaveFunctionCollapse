@@ -7,9 +7,12 @@ import org.amoseman.wavefunctioncollapse.view.Window;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.rmi.RemoteException;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
@@ -18,7 +21,7 @@ public class Main {
     private static final int CELL_SIZE = 6;
     private static final int GRID_WIDTH = SCREEN_WIDTH / CELL_SIZE;
     private static final int GRID_HEIGHT = SCREEN_HEIGHT / CELL_SIZE;
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         Window window = new Window(SCREEN_WIDTH, SCREEN_HEIGHT);
 
         final int STATES = 10;
@@ -32,7 +35,6 @@ public class Main {
         final int DESERT = 8;
         final int ICE = 9;
         final int SHORE = 10;
-
 
         final Color[] palette = new Color[STATES + 1];
         palette[0] = Color.BLACK;
@@ -91,33 +93,52 @@ public class Main {
         }
         model.setWindow(window, CELL_SIZE, palette);
 
+        Optional<BufferedImage[]> result = run(model, window, 30_000, 240);
+        if (result.isPresent()) {
+            try {
+                writeGif("example.gif", result.get());
+            }
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
-        final int steps = 30_000;
-        final int frames = 240;
+    private static Optional<BufferedImage[]> run(Model model, Window window, int steps, int frames) {
+        int tick = 0;
+        if (frames == 0) {
+            model.init();
+            while (tick < steps) {
+                model.step();
+                tick++;
+            }
+            return Optional.empty();
+        }
         if (steps % frames != 0) {
             throw new RuntimeException("Steps not divisible by frames");
         }
         final int sections = steps / frames;
-        int t = 0;
-        int f = 0;
+        int frame = 0;
         BufferedImage[] states = new BufferedImage[frames];
         model.init();
-        while (t < steps) {
+        while (tick < steps) {
             model.step();
-            if (t % sections == 0) {
-                states[f] = window.getScreen();
-                f++;
+            if (tick % sections == 0) {
+                states[frame] = window.getScreen();
+                frame++;
             }
-            t++;
+            tick++;
         }
         window.close();
+        return Optional.of(states);
+    }
 
-        OutputStream stream = new FileOutputStream("example.gif");
+    private static void writeGif(String fileName, BufferedImage[] frames) throws IOException {
+        OutputStream stream = new FileOutputStream(fileName);
         ImageOptions options = new ImageOptions();
         options.setDelay(166, TimeUnit.MILLISECONDS);
-        GifEncoder encoder = new GifEncoder(stream, states[0].getWidth(), states[0].getHeight(), 0);
-        for (int i = 0; i < frames; i++) {
-            BufferedImage image = states[i];
+        GifEncoder encoder = new GifEncoder(stream, frames[0].getWidth(), frames[0].getHeight(), 0);
+        for (BufferedImage image : frames) {
             int[][] data = new int[image.getHeight()][image.getWidth()];
             for (int y = 0; y < image.getHeight(); y++) {
                 for (int x = 0; x < image.getWidth(); x++) {
